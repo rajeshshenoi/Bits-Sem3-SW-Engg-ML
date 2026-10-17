@@ -1,0 +1,24 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>BrakeGuard AI</title><link rel="stylesheet" href="/static/styles.css"></head>
+<body>
+<div class="top"><div><h1>BrakeGuard AI</h1><p>Predictive Maintenance for Automotive Brake Systems</p></div><div class="badge">ML + SOFTWARE ENGINEERING DEMO</div></div>
+<div class="container">
+<section class="hero"><div><h2>Brake-fault risk prediction</h2><p>Predicts probability of a brake-related fault within the next 30 days / 1,000 km.</p></div><div class="model">Model: <b>{{ model_version }}</b></div></section>
+<div class="grid">
+<div class="card"><h3>1. Select vehicle</h3><select id="vehicle">{% for v in vehicles %}<option>{{v}}</option>{% endfor %}</select><button onclick="predict()">Run Prediction</button><div id="result" class="result">Select a vehicle and run prediction.</div></div>
+<div class="card"><h3>System health</h3><div id="health">Loading...</div><div class="metrics"><span><b>Recall</b><br>{{ metrics.recall }}</span><span><b>Precision</b><br>{{ metrics.precision }}</span><span><b>PR-AUC</b><br>{{ metrics.pr_auc }}</span></div></div>
+</div>
+<div class="grid">
+<div class="card"><h3>Architecture — ML components</h3><div class="flow"><span>Feature Store</span><b>→</b><span>Model Service</span><b>→</b><span>Explanation</span></div><p class="muted">Versioned model • probability • risk threshold • explanation</p></div>
+<div class="card"><h3>Architecture — non-ML components</h3><div class="flow"><span>API Gateway</span><b>→</b><span>Orchestrator</span><b>→</b><span>Audit / Monitoring</span></div><p class="muted">Authentication • routing • logging • health • fallback</p></div>
+</div>
+<div class="card"><h3>Event-driven telemetry</h3><p>Publish <code>BrakeTelemetryReceived</code> → FeatureStoreConsumer updates the feature store.</p><button class="secondary" onclick="sendEvent()">Simulate Telemetry Event</button><pre id="eventResult">No event published yet.</pre></div>
+<div class="card"><h3>Recent prediction audit log</h3><table><thead><tr><th>Vehicle</th><th>Risk</th><th>Probability</th><th>Latency</th><th>Model</th></tr></thead><tbody id="audit"><tr><td colspan="5">No predictions yet.</td></tr></tbody></table></div>
+</div>
+<script>
+async function predict(){const v=document.getElementById('vehicle').value; const r=await fetch('/api/v1/predictions?vehicle_id='+encodeURIComponent(v),{method:'POST'}); const d=await r.json(); document.getElementById('result').innerHTML=`<div class="risk ${d.risk.toLowerCase()}">${d.risk}</div><div class="prob">${(d.fault_probability*100).toFixed(1)}%</div><p>${d.explanation}</p><small>Latency ${d.latency_ms} ms • ${d.model_version}</small>`; loadAudit(); loadHealth();}
+async function loadHealth(){const d=await (await fetch('/api/v1/monitoring')).json();document.getElementById('health').innerHTML=`<b>Services healthy</b><br>Avg latency: ${d.observed_avg_latency_ms} ms<br>Predictions logged: ${d.predictions_logged}<br>Vehicles in feature store: ${d.feature_store_vehicles}`;}
+async function loadAudit(){ location.reload(); }
+async function sendEvent(){const v=document.getElementById('vehicle').value; const body={vehicle_id:v,brake_temperature:190,brake_pressure:73,pad_wear_pct:80,vibration_rms:3.4,fluid_age_days:420,odometer_km:85000}; const r=await fetch('/api/v1/telemetry',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});document.getElementById('eventResult').textContent=JSON.stringify(await r.json(),null,2);}
+loadHealth();
+</script></body></html>
