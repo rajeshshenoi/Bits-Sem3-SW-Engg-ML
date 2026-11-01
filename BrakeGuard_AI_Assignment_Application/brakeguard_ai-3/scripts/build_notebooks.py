@@ -20,10 +20,10 @@ NB_DIR = ROOT / "notebooks"
 
 GROUP_TABLE = """| Sl. No | BITS ID | Name | Contribution of team member (Qualitative) | Percentage Contribution (out of 100) |
 |---|---|---|---|---|
-| 1 | `<BITS ID>` | `<Name>` | Refactoring into the `brakeguard` package (data, features, models), research-vs-production comparison | `<%>` |
-| 2 | `<BITS ID>` | `<Name>` | FastAPI REST API design (schemas, status codes, error envelope, API-key security), dashboard | `<%>` |
-| 3 | `<BITS ID>` | `<Name>` | Test strategy and pytest suites (unit, data-quality, ML training/inference, integration), coverage | `<%>` |
-| 4 | `<BITS ID>` | `<Name>` | Logging & error handling, linting/formatting, quality metrics & drift, production-testing & security write-up, report | `<%>` |
+| 1 | 2025ae05802 | SAI KRISHNA VIJAYA RAM K | Refactoring into the `brakeguard` package (data, features, models), research-vs-production comparison | 100% |
+| 2 | 2025ae05999 | S. S SRINIVAS RAO | FastAPI REST API design (schemas, status codes, error envelope, API-key security), dashboard | 100% |
+| 3 | 2025ae05192 | ABHISHEK ARORA | Test strategy and pytest suites (unit, data-quality, ML training/inference, integration), coverage | 100% |
+| 4 | 2025ae05200 | RAJESH. R. SHENOI | Logging & error handling, linting/formatting, quality metrics & drift, production-testing & security write-up, report | 100% |
 """
 
 

@@ -107,12 +107,12 @@ const pct = (x) => (100 * x).toFixed(2) + " %";
 const groupTable = table(
   ["Sl. No", "BITS ID", "Name", "Contribution of team member (Qualitative)", "Percentage Contribution (out of 100)"],
   [
-    ["1", "<BITS ID>", "<Name>", "Refactoring into the brakeguard package (data, features, models, pipeline); research-vs-production comparison (Tasks 1, 2)", "<%>"],
-    ["2", "<BITS ID>", "<Name>", "FastAPI REST API: schemas, status codes, error envelope, API-key security, dashboard (Task 5)", "<%>"],
-    ["3", "<BITS ID>", "<Name>", "Test strategy and pytest suites: unit, data-quality, ML training/inference, integration; coverage (Tasks 6, 7)", "<%>"],
-    ["4", "<BITS ID>", "<Name>", "Logging and error handling, black/isort/flake8/pylint, quality metrics and drift, production testing and security, report (Tasks 3, 4, 8, 9)", "<%>"],
+    ["1", "2025ae05802", "SAI KRISHNA VIJAYA RAM K", "Refactoring into the brakeguard package (data, features, models, pipeline); research-vs-production comparison (Tasks 1, 2)", "100%"],
+    ["2", "2025ae05999", "S. S SRINIVAS RAO", "FastAPI REST API: schemas, status codes, error envelope, API-key security, dashboard (Task 5)", "100%"],
+    ["3", "2025ae05192", "ABHISHEK ARORA", "Test strategy and pytest suites: unit, data-quality, ML training/inference, integration; coverage (Tasks 6, 7)", "100%"],
+    ["4", "2025ae05200", "RAJESH. R. SHENOI", "Logging and error handling, black/isort/flake8/pylint, quality metrics and drift, production testing and security, report (Tasks 3, 4, 8, 9)", "100%"],
   ],
-  [700, 1300, 1500, 4260, 1600]
+  [600, 1350, 1900, 4110, 1400]
 );
 
 const children = [];
