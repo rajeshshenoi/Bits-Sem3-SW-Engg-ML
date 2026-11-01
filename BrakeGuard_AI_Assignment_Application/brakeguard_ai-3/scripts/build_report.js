@@ -1,4 +1,4 @@
-// Builds reports/Group14.docx from the generated evidence.
+// Builds reports/Group-14-Assignment_2_BrakeGuard_AI.docx from the generated evidence.
 // Usage (from brakeguard_ai-3/):  node scripts/build_report.js
 // Requires the `docx` npm package. Re-run scripts.quality_report / pytest first so numbers are current.
 const fs = require("fs");
@@ -445,5 +445,5 @@ const doc = new Document({
   }],
 });
 
-const out = path.join(ROOT, "reports", "Group14.docx");
+const out = path.join(ROOT, "reports", "Group-14-Assignment_2_BrakeGuard_AI.docx");
 Packer.toBuffer(doc).then((buf) => { fs.writeFileSync(out, buf); console.log("wrote", out); });

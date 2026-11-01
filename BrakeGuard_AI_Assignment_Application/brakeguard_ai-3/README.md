@@ -5,7 +5,7 @@ AIML ZG546 Software Engineering for ML, Assignment II. This builds on the Assign
 REST API.
 
 **Group No:** 14. The member table is in `notebooks/Group14.ipynb` and in the report
-(`reports/Group14.docx` / `.pdf`).
+(`reports/Group-14-Assignment_2_BrakeGuard_AI.docx` / `.pdf`).
 
 ## Layout
 
