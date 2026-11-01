@@ -2,7 +2,7 @@
 
 * ``notebooks/01_research_prototype.ipynb`` - deliberately written in
   "research code" style (globals, magic numbers, prints, no tests).
-* ``notebooks/Group_XX.ipynb`` - the implementation notebook required by the
+* ``notebooks/Group14.ipynb`` - the implementation notebook required by the
   assignment; it drives the production package end to end.
 """
 
@@ -124,7 +124,7 @@ def group_notebook():
 # AIML ZG546 - Software Engineering for Machine Learning - Assignment II
 ## BrakeGuard AI: implementation, code quality and testing
 
-**Group No:** `<Fill Group No>`
+**Group No:** 14
 
 {GROUP_TABLE}
 
@@ -244,7 +244,7 @@ def main() -> None:
     """Write both notebooks."""
     NB_DIR.mkdir(exist_ok=True)
     nbf.write(research_notebook(), NB_DIR / "01_research_prototype.ipynb")
-    nbf.write(group_notebook(), NB_DIR / "Group_XX.ipynb")
+    nbf.write(group_notebook(), NB_DIR / "Group14.ipynb")
 
 
 if __name__ == "__main__":

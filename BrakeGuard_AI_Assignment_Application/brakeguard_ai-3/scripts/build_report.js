@@ -1,4 +1,4 @@
-// Builds reports/Group_XX_Assignment2_Report.docx from the generated evidence.
+// Builds reports/Group14.docx from the generated evidence.
 // Usage (from brakeguard_ai-3/):  node scripts/build_report.js
 // Requires the `docx` npm package. Re-run scripts.quality_report / pytest first so numbers are current.
 const fs = require("fs");
@@ -123,10 +123,10 @@ add(
   new Paragraph({ spacing: { before: 1800, after: 120 }, alignment: AlignmentType.CENTER, children: [new TextRun({ text: "AIML ZG546 - Software Engineering for Machine Learning", size: 26, color: "555555" })] }),
   new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 120 }, children: [new TextRun({ text: "Assignment II", bold: true, size: 44, color: ACCENT })] }),
   new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 480 }, children: [new TextRun({ text: "BrakeGuard AI - Implementation, Code Quality and Testing of an ML-enabled Predictive-Maintenance System", size: 30 })] }),
-  new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 240 }, children: [new TextRun({ text: "Group No: <Fill Group No>", bold: true, size: 26 })] }),
+  new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 240 }, children: [new TextRun({ text: "Group No: 14", bold: true, size: 26 })] }),
   groupTable,
   gap(),
-  p("Code: `BrakeGuard_AI_Assignment_Application/brakeguard_ai-3` (builds on the Assignment I prototype in `brakeguard_ai-2`). Implementation notebook: `notebooks/Group_XX.ipynb` (rename to `<Group no>.ipynb`)."),
+  p("Code: `BrakeGuard_AI_Assignment_Application/brakeguard_ai-3` (builds on the Assignment I prototype in `brakeguard_ai-2`). Implementation notebook: `notebooks/Group14.ipynb`."),
   pageBreak(),
   new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun("Contents")] }),
   ...[
@@ -407,7 +407,7 @@ docker compose up --build                                 # lint + tests run ins
   table(["Path", "Content"], [
     ["brakeguard/", "Production package (about 2,000 lines across 29 modules)"],
     ["tests/", "96 pytest tests in unit / data_quality / ml / integration"],
-    ["notebooks/Group_XX.ipynb", "Executed implementation notebook with group details (rename to <Group no>.ipynb)"],
+    ["notebooks/Group14.ipynb", "Executed implementation notebook with group details"],
     ["notebooks/01_research_prototype.ipynb", "Research-code version used for the Task 2 comparison"],
     ["docs/", "research_vs_production.md, production_testing_and_security.md"],
     ["reports/lint/", "Lint reports: before (Assignment I), before (new package), after"],
@@ -419,7 +419,7 @@ docker compose up --build                                 # lint + tests run ins
 );
 
 const doc = new Document({
-  creator: "Group <No>",
+  creator: "Group 14",
   title: "AIML ZG546 Assignment II - BrakeGuard AI",
   styles: {
     default: { document: { run: { font: "Calibri", size: 21 } } },
@@ -439,11 +439,11 @@ const doc = new Document({
   sections: [{
     properties: { page: { size: { width: 12240, height: 15840 }, margin: { top: 1300, bottom: 1300, left: 1440, right: 1440 } } },
     footers: { default: new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [
-      new TextRun({ text: "Group <No> - AIML ZG546 Assignment II - BrakeGuard AI - page ", size: 16, color: "777777" }),
+      new TextRun({ text: "Group 14 - AIML ZG546 Assignment II - BrakeGuard AI - page ", size: 16, color: "777777" }),
       new TextRun({ children: [PageNumber.CURRENT], size: 16, color: "777777" }) ] })] }) },
     children,
   }],
 });
 
-const out = path.join(ROOT, "reports", "Group_XX_Assignment2_Report.docx");
+const out = path.join(ROOT, "reports", "Group14.docx");
 Packer.toBuffer(doc).then((buf) => { fs.writeFileSync(out, buf); console.log("wrote", out); });

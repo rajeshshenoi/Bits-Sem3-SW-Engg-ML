@@ -23,4 +23,4 @@ Component compared: **model training + inference**.
 | Code style | Not checked | black, isort, flake8 (0 issues), pylint 10.00/10 |
 
 Notebooks remain the right tool for exploration. Once an idea works, it moves into the package and
-gets tests, and the notebook becomes a client of that package, as `notebooks/Group_XX.ipynb` does.
+gets tests, and the notebook becomes a client of that package, as `notebooks/Group14.ipynb` does.

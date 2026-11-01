@@ -4,8 +4,8 @@ AIML ZG546 Software Engineering for ML, Assignment II. This builds on the Assign
 `../brakeguard_ai-2` and refactors it into a production-style, tested, lint-clean package with a
 REST API.
 
-**Group No:** `<Fill Group No>`. Fill in the member table in `notebooks/Group_XX.ipynb` and in the
-report, then rename both to your group number.
+**Group No:** 14. The member table is in `notebooks/Group14.ipynb` and in the report
+(`reports/Group14.docx` / `.pdf`).
 
 ## Layout
 
@@ -31,7 +31,7 @@ scripts/train.py            training CLI
 scripts/quality_report.py   model/data-quality metrics + figures -> reports/metrics
 scripts/build_notebooks.py  regenerates the notebooks
 notebooks/01_research_prototype.ipynb   research-code version (for comparison)
-notebooks/Group_XX.ipynb                implementation notebook (rename to <Group no>.ipynb)
+notebooks/Group14.ipynb                implementation notebook
 tests/unit | data_quality | ml | integration     96 pytest tests
 docs/                       research-vs-production, production testing & security
 reports/                    lint before/after, pytest+coverage, metrics, screenshots, final report
