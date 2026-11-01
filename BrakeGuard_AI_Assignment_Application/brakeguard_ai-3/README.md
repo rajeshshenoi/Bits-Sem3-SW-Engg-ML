@@ -37,6 +37,14 @@ docs/                       research-vs-production, production testing & securit
 reports/                    lint before/after, pytest+coverage, metrics, screenshots, final report
 ```
 
+## Run in Google Colab
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/rajeshshenoi/Bits-Sem3-SW-Engg-ML/blob/main/BrakeGuard_AI_Assignment_Application/brakeguard_ai-3/notebooks/Group14.ipynb)
+
+Open `notebooks/Group14.ipynb` with the badge and choose **Runtime -> Run all**. The first code cell
+clones this repository, moves into `brakeguard_ai-3` and installs the dependencies. The rest of the
+notebook then trains the model, calls the API and runs the 96 tests.
+
 ## Quick start
 
 ```bash

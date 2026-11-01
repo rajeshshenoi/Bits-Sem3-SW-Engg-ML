@@ -116,6 +116,12 @@ os.remove("model_research.joblib")  # tidy up the side effect of the cell above
     return nb
 
 
+COLAB_URL = (
+    "https://colab.research.google.com/github/rajeshshenoi/Bits-Sem3-SW-Engg-ML/blob/main/"
+    "BrakeGuard_AI_Assignment_Application/brakeguard_ai-3/notebooks/Group14.ipynb"
+)
+
+
 def group_notebook():
     """Implementation notebook driving the production package."""
     nb = nbf.v4.new_notebook()
@@ -130,6 +136,36 @@ def group_notebook():
 
 This notebook drives the **production package** `brakeguard/` (it contains no model logic of its
 own). Every cell imports from the package, so what is shown here is exactly what the API serves.
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]({COLAB_URL})
+"""),
+        md("""
+### Setup (Google Colab)
+
+The notebook needs the whole project, not just this file. In **Google Colab** the next cell clones
+the repository, moves into `brakeguard_ai-3` and installs the dependencies (about 1 minute).
+When the notebook runs locally from a checkout, the cell does nothing.
+"""),
+        code("""
+import os, subprocess, sys
+from pathlib import Path
+
+REPO_URL = "https://github.com/rajeshshenoi/Bits-Sem3-SW-Engg-ML.git"
+PROJECT_DIR = "BrakeGuard_AI_Assignment_Application/brakeguard_ai-3"
+
+if "google.colab" in sys.modules:
+    repo = Path("/content/Bits-Sem3-SW-Engg-ML")
+    if repo.exists():
+        subprocess.run(["git", "-C", str(repo), "pull", "--ff-only", "-q"], check=True)
+    else:
+        subprocess.run(["git", "clone", "-q", "--depth", "1", REPO_URL, str(repo)], check=True)
+    os.chdir(repo / PROJECT_DIR)
+    # Runtime deps + test tools only (Colab already ships Jupyter; reinstalling it can break the kernel)
+    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-r", "requirements.txt",
+                    "pytest", "pytest-cov", "httpx"], check=True)
+    print("Colab setup complete - working directory:", Path.cwd())
+else:
+    print("Not running in Colab - using the local checkout:", Path.cwd())
 """),
         code("""
 import json, logging, sys, subprocess
