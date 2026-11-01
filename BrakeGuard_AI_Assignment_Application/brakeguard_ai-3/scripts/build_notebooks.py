@@ -281,20 +281,31 @@ server for the charts, then exposes each through a free **Cloudflare quick tunne
 needed). It prints three normal `https://...trycloudflare.com` links that open in any browser tab.
 
 * The links are public while the cell's processes run - fine for a demo, do not share them widely.
-* Stop everything with the last cell. When the notebook runs outside Colab these cells do nothing.
+* The processes keep running after the cell finishes - keep this Colab tab open while you use the links.
+* **Runtime -> Run all** is safe: the stop cell below only acts when you set `STOP_DEMO = True`.
+* If a link shows *Cloudflare error 1033*, the tunnel is not connected: simply re-run this cell.
+* When the notebook runs outside Colab these cells do nothing.
 """),
         code("""
 import re, time, urllib.request
 
 def _start_tunnel(port, log_name):
+    \"\"\"Start a quick tunnel; return (process, url) once the tunnel is connected, else (process, None).\"\"\"
     log = open(ROOT / log_name, "w")
-    proc = subprocess.Popen([str(ROOT / "cloudflared"), "tunnel", "--url", f"http://localhost:{port}", "--no-autoupdate"],
-                            stdout=log, stderr=log)
-    for _ in range(45):
+    # --protocol http2 uses plain HTTPS (port 443); more reliable than the default QUIC/UDP on cloud VMs
+    proc = subprocess.Popen([str(ROOT / "cloudflared"), "tunnel", "--url", f"http://localhost:{port}",
+                             "--no-autoupdate", "--protocol", "http2"], stdout=log, stderr=log)
+    url = None
+    for _ in range(60):
         time.sleep(1)
-        found = re.search(r"https://[a-z0-9-]+\\.trycloudflare\\.com", (ROOT / log_name).read_text())
-        if found:
-            return proc, found.group(0)
+        text = (ROOT / log_name).read_text()
+        found = re.search(r"https://[a-z0-9-]+\\.trycloudflare\\.com", text)
+        url = url or (found.group(0) if found else None)
+        if proc.poll() is not None:          # cloudflared exited -> tunnel is dead
+            return proc, None
+        if url and "Registered tunnel connection" in text:
+            time.sleep(3)                    # let the new hostname propagate before printing it
+            return proc, url
     return proc, None
 
 if "google.colab" in sys.modules:
@@ -324,12 +335,17 @@ else:
     print("Not running in Colab - start the API locally with:  uvicorn app:app  and open http://127.0.0.1:8000")
 """),
         code("""
-# Stop the API, chart server and tunnels (Colab only)
-for name in ("api_tunnel", "chart_tunnel", "chart_server", "api_server"):
-    proc = globals().get(name)
-    if proc is not None:
-        proc.terminate()
-print("stopped" if "google.colab" in sys.modules else "nothing to stop")
+# Stop the API, chart server and tunnels. Set STOP_DEMO = True and run this cell when you are done.
+STOP_DEMO = False
+
+if STOP_DEMO:
+    for name in ("api_tunnel", "chart_tunnel", "chart_server", "api_server"):
+        proc = globals().get(name)
+        if proc is not None:
+            proc.terminate()
+    print("Demo servers and tunnels stopped")
+else:
+    print("Demo still running - set STOP_DEMO = True and re-run this cell to stop it")
 """),
     ]
     return nb
