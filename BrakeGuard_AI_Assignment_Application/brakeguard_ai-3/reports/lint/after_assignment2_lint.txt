@@ -1,0 +1,17 @@
+### Assignment II package (brakeguard_ai-3) - AFTER black + isort + lint fixes
+
+$ black --check brakeguard tests scripts app.py
+All done! ✨ 🍰 ✨
+46 files would be left unchanged.
+
+$ isort --check-only brakeguard tests scripts app.py
+(isort: no issues - exit code 0)
+
+$ flake8 brakeguard tests scripts app.py --count --statistics
+0
+
+$ pylint brakeguard scripts app.py
+
+--------------------------------------------------------------------
+Your code has been rated at 10.00/10
+

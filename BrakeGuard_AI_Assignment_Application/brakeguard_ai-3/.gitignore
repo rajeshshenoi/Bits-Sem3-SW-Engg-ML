@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+.ipynb_checkpoints/
+# model artefacts are build outputs: `python -m scripts.train` (or the API on first start) recreates them
+artifacts/*.joblib

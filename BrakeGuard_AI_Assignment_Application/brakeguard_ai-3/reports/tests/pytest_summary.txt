@@ -1,0 +1,58 @@
+$ pytest -v --cov=brakeguard   (excerpt - full log in reports/tests/pytest_report.txt)
+============================= test session starts ==============================
+platform linux -- Python 3.13.18, pytest-9.2.0, pluggy-1.7.0 -- /usr/local/bin/python
+rootdir: /home/user/Bits-Sem3-SW-Engg-ML/BrakeGuard_AI_Assignment_Application/brakeguard_ai-3
+configfile: pyproject.toml
+tests/data_quality/test_data_quality.py::test_synthetic_data_passes_all_quality_gates PASSED [  1%]
+tests/data_quality/test_data_quality.py::test_missing_column_fails_schema PASSED [  2%]
+tests/data_quality/test_data_quality.py::test_missing_target_only_required_for_training PASSED [  3%]
+    ... 16 more in tests/data_quality/test_data_quality.py PASSED
+tests/integration/test_api.py::test_health_and_readiness PASSED          [ 20%]
+tests/integration/test_api.py::test_readiness_fails_without_model PASSED [ 21%]
+tests/integration/test_api.py::test_prediction_without_model_returns_503 PASSED [ 22%]
+    ... 19 more in tests/integration/test_api.py PASSED
+tests/integration/test_pipeline.py::test_pipeline_from_csv_registers_loadable_model PASSED [ 43%]
+tests/integration/test_pipeline.py::test_pipeline_refuses_bad_data PASSED [ 44%]
+tests/integration/test_pipeline.py::test_load_or_train_recovers_from_missing_model PASSED [ 45%]
+    ... 2 more in tests/integration/test_pipeline.py PASSED
+tests/ml/test_inference.py::test_batch_output_shape PASSED               [ 48%]
+tests/ml/test_inference.py::test_probabilities_are_valid PASSED          [ 50%]
+tests/ml/test_inference.py::test_risk_band_consistent_with_probability PASSED [ 51%]
+    ... 13 more in tests/ml/test_inference.py PASSED
+tests/ml/test_training.py::test_model_can_overfit_a_small_batch PASSED   [ 65%]
+tests/ml/test_training.py::test_training_loss_decreases_as_trees_are_added PASSED [ 66%]
+tests/ml/test_training.py::test_model_beats_trivial_baseline PASSED      [ 67%]
+    ... 5 more in tests/ml/test_training.py PASSED
+tests/unit/test_components.py::test_risk_threshold_boundaries[0.0-LOW] PASSED [ 73%]
+tests/unit/test_components.py::test_risk_threshold_boundaries[0.39-LOW] PASSED [ 75%]
+tests/unit/test_components.py::test_risk_threshold_boundaries[0.4-MEDIUM] PASSED [ 76%]
+    ... 23 more in tests/unit/test_components.py PASSED
+
+_______________ coverage: platform linux, python 3.13.18-final-0 _______________
+Name                                 Stmts   Miss  Cover
+--------------------------------------------------------
+brakeguard/api/app.py                   54      2    96%
+brakeguard/api/container.py             33      0   100%
+brakeguard/api/errors.py                31      2    94%
+brakeguard/api/routes.py                74      4    95%
+brakeguard/api/schemas.py               68      0   100%
+brakeguard/api/security.py              14      0   100%
+brakeguard/config.py                    52      0   100%
+brakeguard/data/ingestion.py            52      1    98%
+brakeguard/data/validation.py          100      2    98%
+brakeguard/evaluation/metrics.py        41      2    95%
+brakeguard/exceptions.py                11      0   100%
+brakeguard/features/engineering.py      49      3    94%
+brakeguard/features/store.py            35      0   100%
+brakeguard/logging_config.py            18      1    94%
+brakeguard/models/predictor.py          70      2    97%
+brakeguard/models/registry.py           50      6    88%
+brakeguard/models/trainer.py            66      4    94%
+brakeguard/monitoring/audit.py          30      0   100%
+brakeguard/monitoring/drift.py          62      3    95%
+brakeguard/monitoring/events.py         43      2    95%
+brakeguard/pipeline.py                  44      0   100%
+brakeguard/schemas.py                   14      0   100%
+--------------------------------------------------------
+TOTAL                                 1030     34    97%
+============================= 96 passed in 16.69s ==============================

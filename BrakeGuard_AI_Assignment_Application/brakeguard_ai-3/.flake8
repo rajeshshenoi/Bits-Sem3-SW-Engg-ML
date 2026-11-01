@@ -1,0 +1,7 @@
+[flake8]
+max-line-length = 110
+extend-ignore = E203, W503
+exclude = .git,__pycache__,.venv,notebooks,artifacts
+per-file-ignores =
+    tests/*: N802
+    scripts/build_notebooks.py: E501

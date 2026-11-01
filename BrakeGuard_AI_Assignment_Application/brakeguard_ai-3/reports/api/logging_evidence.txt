@@ -1,0 +1,44 @@
+# (a) API server log (uvicorn app:app) - INFO lifecycle, WARNING on HIGH risk / drift / rejected input
+2026-11-01 09:55:52,526 | INFO    | brakeguard.models.registry | Loaded model brakeguard-rf-v2.0 (trained 2026-11-01T09:54:58.577976+00:00)
+2026-11-01 09:55:52,542 | INFO    | brakeguard.monitoring.events | Subscriber 'FeatureStoreConsumer' registered for BrakeTelemetryReceived
+2026-11-01 09:55:52,542 | INFO    | brakeguard.monitoring.events | Subscriber 'DriftMonitorConsumer' registered for BrakeTelemetryReceived
+2026-11-01 09:55:52,542 | INFO    | brakeguard.api.app | BrakeGuard AI API ready (model=brakeguard-rf-v2.0)
+2026-11-01 09:55:52,596 | INFO    | brakeguard.api.app | GET /ready -> 200 (4.8 ms)
+2026-11-01 09:55:54,219 | INFO    | brakeguard.models.predictor | Scored 1 record(s) with brakeguard-rf-v2.0
+2026-11-01 09:55:54,221 | INFO    | brakeguard.api.app | POST /api/v1/vehicles/BG-20481/predictions -> 200 (48.9 ms)
+2026-11-01 09:55:54,250 | WARNING | brakeguard.monitoring.audit | HIGH brake-fault risk for BG-30991 (p=0.792)
+2026-11-01 09:55:54,251 | INFO    | brakeguard.api.app | POST /api/v1/vehicles/BG-30991/predictions -> 200 (28.1 ms)
+2026-11-01 09:55:54,282 | INFO    | brakeguard.api.app | POST /api/v1/vehicles/BG-40001/predictions -> 200 (29.2 ms)
+2026-11-01 09:55:54,316 | WARNING | brakeguard.monitoring.audit | HIGH brake-fault risk for BG-40002 (p=0.755)
+2026-11-01 09:55:54,318 | INFO    | brakeguard.api.app | POST /api/v1/vehicles/BG-40002/predictions -> 200 (33.0 ms)
+2026-11-01 09:55:54,979 | WARNING | brakeguard.monitoring.drift | Significant drift on brake_temperature (PSI=0.764)
+2026-11-01 09:55:54,984 | WARNING | brakeguard.monitoring.drift | Significant drift on pad_wear_pct (PSI=1.338)
+2026-11-01 09:55:54,991 | INFO    | brakeguard.monitoring.drift | Drift check: max PSI=1.337, drifted=['brake_temperature', 'pad_wear_pct']
+2026-11-01 09:55:55,115 | WARNING | brakeguard.monitoring.audit | HIGH brake-fault risk for BG-10245 (p=0.957)
+2026-11-01 09:55:55,116 | INFO    | brakeguard.api.app | POST /api/v1/vehicles/BG-10245/predictions -> 200 (29.9 ms)
+2026-11-01 09:55:55,250 | INFO    | brakeguard.features.store | Feature store updated vehicle BG-10245
+2026-11-01 09:55:55,265 | WARNING | brakeguard.monitoring.drift | Significant drift on brake_temperature (PSI=0.768)
+2026-11-01 09:55:55,272 | WARNING | brakeguard.monitoring.drift | Significant drift on pad_wear_pct (PSI=1.342)
+2026-11-01 09:55:55,280 | INFO    | brakeguard.monitoring.drift | Drift check: max PSI=1.342, drifted=['brake_temperature', 'pad_wear_pct']
+2026-11-01 09:56:12,444 | WARNING | brakeguard.api.errors | Rejected invalid request on /api/v1/predictions: 1 error(s)
+2026-11-01 09:56:12,445 | INFO    | brakeguard.api.app | POST /api/v1/predictions -> 422 (2.1 ms)
+2026-11-01 09:56:12,456 | WARNING | brakeguard.features.store | Vehicle BG-99999 not found in feature store
+2026-11-01 09:56:12,456 | WARNING | brakeguard.api.errors | GET /api/v1/vehicles/BG-99999/features -> 404 Vehicle 'BG-99999' not found in feature store
+2026-11-01 09:56:12,456 | INFO    | brakeguard.api.app | GET /api/v1/vehicles/BG-99999/features -> 404 (2.1 ms)
+
+# (b) Training CLI - ERROR path (missing data file) -> non-zero exit code
+$ python -m scripts.train --csv data/missing.csv --no-register
+2026-11-01 09:56:13,916 | INFO    | brakeguard.pipeline | Training pipeline started (model version brakeguard-rf-v2.0)
+2026-11-01 09:56:13,916 | ERROR   | brakeguard.data.ingestion | Telemetry file not found: data/missing.csv
+2026-11-01 09:56:13,916 | ERROR   | brakeguard.cli | Training failed: Telemetry file not found: data/missing.csv
+exit code: 1
+
+# (c) Model registry - corrupt artefact -> ERROR, then WARNING + automatic retraining fallback
+2026-11-01 09:56:15,744 | ERROR   | brakeguard.models.registry | Model artefact /tmp/corrupt.joblib is corrupt: invalid literal for int() with base 10: b'arbag'
+2026-11-01 09:56:15,744 | WARNING | brakeguard.pipeline | Model unavailable (Corrupt model artefact: invalid literal for int() with base 10: b'arbag') - training a new one
+2026-11-01 09:56:15,744 | INFO    | brakeguard.pipeline | Training pipeline started (model version brakeguard-rf-v2.0)
+2026-11-01 09:56:16,724 | INFO    | brakeguard.models.trainer | Hold-out metrics: recall=0.816 precision=0.768 f1=0.791 pr_auc=0.844 brier=0.160 ece=0.030
+2026-11-01 09:56:16,724 | INFO    | brakeguard.pipeline | Model passed quality gates
+2026-11-01 09:56:16,788 | INFO    | brakeguard.models.registry | Registered model brakeguard-rf-v2.0 at /tmp/corrupt.joblib
+2026-11-01 09:56:16,788 | INFO    | brakeguard.pipeline | Training pipeline finished
+served model: brakeguard-rf-v2.0

@@ -1,0 +1,167 @@
+{
+  "model_version": "brakeguard-rf-v2.0",
+  "model_quality": {
+    "test": {
+      "n_samples": 600,
+      "threshold": 0.5,
+      "accuracy": 0.7783,
+      "precision": 0.7683,
+      "recall": 0.8155,
+      "f1": 0.7912,
+      "pr_auc": 0.8439,
+      "roc_auc": 0.8469,
+      "brier_score": 0.1597,
+      "expected_calibration_error": 0.0301,
+      "log_loss": 0.4885
+    },
+    "train": {
+      "n_samples": 2400,
+      "threshold": 0.5,
+      "accuracy": 0.8708,
+      "precision": 0.8852,
+      "recall": 0.8608,
+      "f1": 0.8728,
+      "pr_auc": 0.9567,
+      "roc_auc": 0.9496,
+      "brier_score": 0.101,
+      "expected_calibration_error": 0.0945,
+      "log_loss": 0.3393
+    }
+  },
+  "data_quality": {
+    "clean_batch": {
+      "n_rows": 500,
+      "schema_valid": true,
+      "missing_columns": [],
+      "non_numeric_columns": [],
+      "missing_ratio": {
+        "brake_temperature": 0.0,
+        "brake_pressure": 0.0,
+        "pad_wear_pct": 0.0,
+        "vibration_rms": 0.0,
+        "fluid_age_days": 0.0,
+        "odometer_km": 0.0
+      },
+      "out_of_range_ratio": {
+        "brake_temperature": 0.0,
+        "brake_pressure": 0.0,
+        "pad_wear_pct": 0.0,
+        "vibration_rms": 0.0,
+        "fluid_age_days": 0.0,
+        "odometer_km": 0.0
+      },
+      "duplicate_ratio": 0.0,
+      "label_values_valid": true,
+      "issues": [],
+      "passed": true,
+      "overall_missing_ratio": 0.0,
+      "overall_out_of_range_ratio": 0.0
+    },
+    "corrupted_batch": {
+      "n_rows": 515,
+      "schema_valid": true,
+      "missing_columns": [],
+      "non_numeric_columns": [],
+      "missing_ratio": {
+        "brake_temperature": 0.0777,
+        "brake_pressure": 0.0,
+        "pad_wear_pct": 0.0,
+        "vibration_rms": 0.0,
+        "fluid_age_days": 0.0,
+        "odometer_km": 0.0
+      },
+      "out_of_range_ratio": {
+        "brake_temperature": 0.0,
+        "brake_pressure": 0.0,
+        "pad_wear_pct": 0.0505,
+        "vibration_rms": 0.0,
+        "fluid_age_days": 0.0,
+        "odometer_km": 0.0
+      },
+      "duplicate_ratio": 0.02912621359223301,
+      "label_values_valid": true,
+      "issues": [
+        "column 'brake_temperature' missing ratio 7.77% exceeds 5.00%",
+        "column 'pad_wear_pct' has 5.05% values outside [0.0, 100.0] %"
+      ],
+      "passed": false,
+      "overall_missing_ratio": 0.013,
+      "overall_out_of_range_ratio": 0.0084
+    }
+  },
+  "drift": {
+    "stable_fleet": {
+      "n_reference": 2400,
+      "n_current": 500,
+      "psi": {
+        "brake_temperature": 0.0212,
+        "brake_pressure": 0.0177,
+        "pad_wear_pct": 0.0166,
+        "vibration_rms": 0.0164,
+        "fluid_age_days": 0.0183,
+        "odometer_km": 0.0123
+      },
+      "ks_pvalue": {
+        "brake_temperature": 0.943958,
+        "brake_pressure": 0.139015,
+        "pad_wear_pct": 0.497877,
+        "vibration_rms": 0.925388,
+        "fluid_age_days": 0.5248,
+        "odometer_km": 0.948127
+      },
+      "status": {
+        "brake_temperature": "stable",
+        "brake_pressure": "stable",
+        "pad_wear_pct": "stable",
+        "vibration_rms": "stable",
+        "fluid_age_days": "stable",
+        "odometer_km": "stable"
+      },
+      "max_psi": 0.0212,
+      "drifted_features": []
+    },
+    "shifted_fleet": {
+      "n_reference": 2400,
+      "n_current": 500,
+      "psi": {
+        "brake_temperature": 1.2943,
+        "brake_pressure": 0.0177,
+        "pad_wear_pct": 1.4495,
+        "vibration_rms": 0.0164,
+        "fluid_age_days": 0.0183,
+        "odometer_km": 0.0123
+      },
+      "ks_pvalue": {
+        "brake_temperature": 0.0,
+        "brake_pressure": 0.139015,
+        "pad_wear_pct": 0.0,
+        "vibration_rms": 0.925388,
+        "fluid_age_days": 0.5248,
+        "odometer_km": 0.948127
+      },
+      "status": {
+        "brake_temperature": "alert",
+        "brake_pressure": "stable",
+        "pad_wear_pct": "alert",
+        "vibration_rms": "stable",
+        "fluid_age_days": "stable",
+        "odometer_km": "stable"
+      },
+      "max_psi": 1.4495,
+      "drifted_features": [
+        "brake_temperature",
+        "pad_wear_pct"
+      ]
+    }
+  },
+  "training_loss_curve": {
+    "1": 0.6842,
+    "2": 0.42,
+    "5": 0.3581,
+    "10": 0.3516,
+    "25": 0.348,
+    "50": 0.3444,
+    "100": 0.3437,
+    "160": 0.344
+  }
+}

@@ -1,0 +1,45 @@
+$ curl -s localhost:8000/health
+{"status":"alive","model_loaded":true,"model_version":"brakeguard-rf-v2.0"}
+
+$ curl -s -X POST localhost:8000/api/v1/predictions -H "Content-Type: application/json" -d @high_risk.json
+{
+    "prediction_id": "590bfbfe-61c4-4827-8402-63d28641192d",
+    "vehicle_id": "BG-10245",
+    "fault_probability": 0.9571,
+    "risk": "HIGH",
+    "top_factors": [
+        {
+            "feature": "thermal_wear_index",
+            "contribution": 0.6532,
+            "direction": "higher"
+        },
+        {
+            "feature": "pad_wear_pct",
+            "contribution": 0.3308,
+            "direction": "higher"
+        },
+        {
+            "feature": "vibration_rms",
+            "contribution": 0.1544,
+            "direction": "higher"
+        }
+    ],
+    "explanation": "Main drivers: thermal_wear_index (higher than fleet average), pad_wear_pct (higher than fleet average), vibration_rms (higher than fleet average)",
+    "model_version": "brakeguard-rf-v2.0",
+    "latency_ms": 27.797
+}
+
+$ curl -s -i -X POST localhost:8000/api/v1/predictions -d {... "pad_wear_pct": 450 ...}   (invalid input)
+HTTP/1.1 422 Unprocessable Content
+{"error":{"code":"validation_error","message":"Request validation failed","request_id":"2c1797bb-88f0-4c94-8f5e-df0d105c14cc","details":[{"loc":["body","telemetry","pad_wear_pct"],"msg":"Input should be less than or equal to 100","type":"less_than_equal"}]}}
+
+
+$ curl -s -i localhost:8000/api/v1/vehicles/BG-99999/features   (unknown vehicle)
+HTTP/1.1 404 Not Found
+{"error":{"code":"vehicle_not_found","message":"Vehicle 'BG-99999' not found in feature store","request_id":"85b8e79f-1fd5-4109-860a-de2270dc0d93","details":null}}
+
+
+$ curl -s -i -X POST localhost:8000/api/v1/telemetry -d {...}   (event accepted)
+HTTP/1.1 202 Accepted
+{"status":"accepted","event_type":"BrakeTelemetryReceived","vehicle_id":"BG-55555","delivered_to":["FeatureStoreConsumer","DriftMonitorConsumer"],"timestamp":"2026-11-01T09:50:43.945119+00:00"}
+

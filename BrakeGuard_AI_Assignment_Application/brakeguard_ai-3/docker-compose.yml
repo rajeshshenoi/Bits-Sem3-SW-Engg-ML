@@ -1,0 +1,12 @@
+services:
+  brakeguard-api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      # Set a key to enable API-key authentication on /api/v1/* (empty = disabled for local demo)
+      BRAKEGUARD_API_KEY: ${BRAKEGUARD_API_KEY:-}
+      BRAKEGUARD_LOG_LEVEL: INFO
+    read_only: true
+    tmpfs:
+      - /tmp

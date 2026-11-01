@@ -1,0 +1,44 @@
+{
+  "model_version": "brakeguard-rf-v2.0",
+  "model_quality": {
+    "n_samples": 600,
+    "threshold": 0.5,
+    "accuracy": 0.7783,
+    "precision": 0.7683,
+    "recall": 0.8155,
+    "f1": 0.7912,
+    "pr_auc": 0.8439,
+    "roc_auc": 0.8469,
+    "brier_score": 0.1597,
+    "expected_calibration_error": 0.0301,
+    "log_loss": 0.4885
+  },
+  "data_quality": {
+    "n_rows": 3000,
+    "schema_valid": true,
+    "missing_columns": [],
+    "non_numeric_columns": [],
+    "missing_ratio": {
+      "brake_temperature": 0.0,
+      "brake_pressure": 0.0,
+      "pad_wear_pct": 0.0,
+      "vibration_rms": 0.0,
+      "fluid_age_days": 0.0,
+      "odometer_km": 0.0
+    },
+    "out_of_range_ratio": {
+      "brake_temperature": 0.0,
+      "brake_pressure": 0.0,
+      "pad_wear_pct": 0.0,
+      "vibration_rms": 0.0,
+      "fluid_age_days": 0.0,
+      "odometer_km": 0.0
+    },
+    "duplicate_ratio": 0.0,
+    "label_values_valid": true,
+    "issues": [],
+    "passed": true,
+    "overall_missing_ratio": 0.0,
+    "overall_out_of_range_ratio": 0.0
+  }
+}

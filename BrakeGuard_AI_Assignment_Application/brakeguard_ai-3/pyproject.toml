@@ -1,0 +1,42 @@
+[project]
+name = "brakeguard"
+version = "2.0.0"
+description = "BrakeGuard AI - predictive maintenance for automotive brake systems (AIML ZG546 Assignment II)"
+requires-python = ">=3.11"
+
+[tool.black]
+line-length = 110
+target-version = ["py311"]
+
+[tool.isort]
+profile = "black"
+line_length = 110
+known_first_party = ["brakeguard", "scripts", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.coverage.run]
+source = ["brakeguard"]
+omit = ["brakeguard/api/templates/*"]
+
+[tool.pylint.main]
+py-version = "3.11"
+ignore = ["notebooks"]
+
+[tool.pylint.format]
+max-line-length = 110
+
+[tool.pylint."messages control"]
+# X / X_train are the conventional ML names for feature matrices.
+good-names = ["X", "y", "z", "i", "n", "c", "p", "r", "b", "df", "X_t", "X_train", "X_test", "y_train", "y_test"]
+disable = ["too-few-public-methods", "duplicate-code"]
+
+[tool.pylint.design]
+max-args = 7
+max-positional-arguments = 7
+max-locals = 20
+# dataclasses / value objects legitimately carry many fields
+max-attributes = 20

@@ -1,0 +1,22 @@
+2026-11-01 09:50:30,536 | INFO    | brakeguard.models.registry | Loaded model brakeguard-rf-v2.0 (trained 2026-11-01T09:50:12.097670+00:00)
+2026-11-01 09:50:30,553 | INFO    | brakeguard.monitoring.events | Subscriber 'FeatureStoreConsumer' registered for BrakeTelemetryReceived
+2026-11-01 09:50:30,553 | INFO    | brakeguard.monitoring.events | Subscriber 'DriftMonitorConsumer' registered for BrakeTelemetryReceived
+2026-11-01 09:50:30,553 | INFO    | brakeguard.api.app | BrakeGuard AI API ready (model=brakeguard-rf-v2.0)
+2026-11-01 09:50:30,962 | INFO    | brakeguard.api.app | GET /ready -> 200 (5.5 ms)
+INFO:     127.0.0.1:41086 - "GET /ready HTTP/1.1" 200 OK
+2026-11-01 09:50:43,447 | INFO    | brakeguard.features.store | Feature store inserted vehicle BG-40000
+2026-11-01 09:50:43,448 | INFO    | brakeguard.api.app | POST /api/v1/telemetry -> 202 (27.7 ms)
+2026-11-01 09:50:43,678 | INFO    | brakeguard.api.app | POST /api/v1/vehicles/BG-20481/predictions -> 200 (32.3 ms)
+INFO:     127.0.0.1:36422 - "POST /api/v1/vehicles/BG-20481/predictions HTTP/1.1" 200 OK
+2026-11-01 09:50:43,700 | INFO    | brakeguard.api.app | POST /api/v1/vehicles/BG-30991/predictions -> 200 (19.6 ms)
+INFO:     127.0.0.1:36428 - "POST /api/v1/vehicles/BG-30991/predictions HTTP/1.1" 200 OK
+2026-11-01 09:50:43,720 | INFO    | brakeguard.api.app | POST /api/v1/vehicles/BG-10245/predictions -> 200 (18.3 ms)
+INFO:     127.0.0.1:36432 - "POST /api/v1/vehicles/BG-10245/predictions HTTP/1.1" 200 OK
+2026-11-01 09:50:43,894 | INFO    | brakeguard.api.app | POST /api/v1/predictions -> 200 (31.5 ms)
+INFO:     127.0.0.1:36458 - "POST /api/v1/predictions HTTP/1.1" 200 OK
+2026-11-01 09:50:43,914 | WARNING | brakeguard.api.errors | Rejected invalid request on /api/v1/predictions: 1 error(s)
+2026-11-01 09:50:43,914 | INFO    | brakeguard.api.app | POST /api/v1/predictions -> 422 (1.9 ms)
+INFO:     127.0.0.1:36470 - "POST /api/v1/predictions HTTP/1.1" 422 Unprocessable Content
+2026-11-01 09:50:43,929 | WARNING | brakeguard.api.errors | GET /api/v1/vehicles/BG-99999/features -> 404 Vehicle 'BG-99999' not found in feature store
+2026-11-01 09:50:43,929 | INFO    | brakeguard.api.app | GET /api/v1/vehicles/BG-99999/features -> 404 (2.8 ms)
+INFO:     127.0.0.1:36476 - "GET /api/v1/vehicles/BG-99999/features HTTP/1.1" 404 Not Found

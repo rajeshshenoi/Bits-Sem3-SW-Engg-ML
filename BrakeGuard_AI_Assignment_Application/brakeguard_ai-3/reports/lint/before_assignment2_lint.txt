@@ -1,0 +1,63 @@
+### Assignment II package (brakeguard_ai-3) - BEFORE running black/isort and fixing lint
+
+$ black --check brakeguard tests scripts app.py
+would reformat brakeguard/api/errors.py
+would reformat brakeguard/config.py
+would reformat brakeguard/features/engineering.py
+would reformat brakeguard/api/routes.py
+would reformat scripts/train.py
+would reformat tests/integration/test_api.py
+would reformat tests/unit/test_components.py
+
+Oh no! 💥 💔 💥
+7 files would be reformatted, 37 files would be left unchanged.
+
+$ isort --check-only brakeguard tests scripts app.py
+
+$ flake8 brakeguard tests scripts app.py --count --statistics
+brakeguard/api/errors.py:70:111: E501 line too long (116 > 110 characters)
+brakeguard/api/routes.py:54:111: E501 line too long (111 > 110 characters)
+brakeguard/api/routes.py:86:111: E501 line too long (121 > 110 characters)
+brakeguard/api/routes.py:121:111: E501 line too long (121 > 110 characters)
+brakeguard/api/routes.py:127:111: E501 line too long (114 > 110 characters)
+brakeguard/api/routes.py:154:111: E501 line too long (117 > 110 characters)
+brakeguard/api/routes.py:210:111: E501 line too long (115 > 110 characters)
+scripts/train.py:48:111: E501 line too long (121 > 110 characters)
+tests/integration/test_api.py:66:111: E501 line too long (115 > 110 characters)
+tests/integration/test_api.py:120:111: E501 line too long (118 > 110 characters)
+tests/integration/test_api.py:122:111: E501 line too long (115 > 110 characters)
+tests/unit/test_components.py:120:111: E501 line too long (122 > 110 characters)
+12    E501 line too long (116 > 110 characters)
+12
+
+$ pylint brakeguard scripts app.py
+************* Module brakeguard.config
+brakeguard/config.py:62:0: R0902: Too many instance attributes (16/7) (too-many-instance-attributes)
+************* Module brakeguard.evaluation.metrics
+brakeguard/evaluation/metrics.py:32:0: R0902: Too many instance attributes (11/7) (too-many-instance-attributes)
+************* Module brakeguard.api.errors
+brakeguard/api/errors.py:70:0: C0301: Line too long (116/110) (line-too-long)
+brakeguard/api/errors.py:74:44: W0613: Unused argument 'exc' (unused-argument)
+************* Module brakeguard.api.routes
+brakeguard/api/routes.py:54:0: C0301: Line too long (111/110) (line-too-long)
+brakeguard/api/routes.py:86:0: C0301: Line too long (121/110) (line-too-long)
+brakeguard/api/routes.py:121:0: C0301: Line too long (121/110) (line-too-long)
+brakeguard/api/routes.py:127:0: C0301: Line too long (114/110) (line-too-long)
+brakeguard/api/routes.py:154:0: C0301: Line too long (117/110) (line-too-long)
+brakeguard/api/routes.py:210:0: C0301: Line too long (115/110) (line-too-long)
+brakeguard/api/routes.py:38:0: C0103: Constant name "VehicleId" doesn't conform to UPPER_CASE naming style (invalid-name)
+brakeguard/api/routes.py:87:4: W0621: Redefining name 'audit' from outer scope (line 188) (redefined-outer-name)
+************* Module brakeguard.features.engineering
+brakeguard/features/engineering.py:44:35: W0613: Unused argument 'y' (unused-argument)
+brakeguard/features/engineering.py:47:8: W0201: Attribute 'medians_' defined outside __init__ (attribute-defined-outside-init)
+brakeguard/features/engineering.py:48:8: W0201: Attribute 'feature_names_out_' defined outside __init__ (attribute-defined-outside-init)
+************* Module brakeguard.models.registry
+brakeguard/models/registry.py:21:0: R0902: Too many instance attributes (8/7) (too-many-instance-attributes)
+************* Module brakeguard.data.validation
+brakeguard/data/validation.py:24:0: R0902: Too many instance attributes (9/7) (too-many-instance-attributes)
+************* Module scripts.train
+scripts/train.py:48:0: C0301: Line too long (121/110) (line-too-long)
+
+-----------------------------------
+Your code has been rated at 9.83/10
+

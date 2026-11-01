@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>BrakeGuard AI</title><link rel="stylesheet" href="/static/styles.css"></head>
+<body>
+<div class="top"><div><h1>BrakeGuard AI</h1><p>Predictive Maintenance for Automotive Brake Systems &mdash; Assignment II</p></div><div class="badge">PRODUCTION-STYLE PACKAGE &bull; REST API v1</div></div>
+<div class="container">
+<section class="hero"><div><h2>Brake-fault risk prediction</h2><p>Predicts probability of a brake-related fault within the next 30 days / 1,000 km.</p></div><div class="model">Model: <b>{{ model_version }}</b></div></section>
+<div class="grid">
+<div class="card"><h3>1. Select vehicle</h3>
+<select id="vehicle">{% for v in vehicles %}<option>{{ v }}</option>{% endfor %}</select><button onclick="predict()">Run Prediction</button>
+{% if auth_enabled %}<input id="apikey" class="apikey" placeholder="X-API-Key (required)" type="password">{% endif %}
+<div id="result" class="result">Select a vehicle and run prediction.</div></div>
+<div class="card"><h3>Model quality (hold-out set)</h3>
+<div class="metrics six">
+<span><b>Recall</b><br>{{ metrics.recall }}</span><span><b>Precision</b><br>{{ metrics.precision }}</span><span><b>F1</b><br>{{ metrics.f1 }}</span>
+<span><b>PR-AUC</b><br>{{ metrics.pr_auc }}</span><span><b>Brier</b><br>{{ metrics.brier_score }}</span><span><b>ECE</b><br>{{ metrics.expected_calibration_error }}</span>
+</div>
+<h3 style="margin-top:18px">Service health</h3><div id="health">Loading...</div></div>
+</div>
+<div class="grid">
+<div class="card"><h3>Event-driven telemetry</h3><p>Publish <code>BrakeTelemetryReceived</code> &rarr; FeatureStoreConsumer + DriftMonitorConsumer.</p>
+<button class="secondary" onclick="sendEvent()">Simulate Telemetry Event</button><pre id="eventResult">No event published yet.</pre></div>
+<div class="card"><h3>Data drift (live telemetry vs training)</h3><div id="drift" class="muted">Loading...</div></div>
+</div>
+<div class="card"><h3>Recent prediction audit log</h3><table><thead><tr><th>Vehicle</th><th>Risk</th><th>Probability</th><th>Latency</th><th>Model</th></tr></thead><tbody id="audit"><tr><td colspan="5">No predictions yet.</td></tr></tbody></table></div>
+</div>
+<script>
+function headers(extra){
+  const h=Object.assign({}, extra||{});
+  const k=document.getElementById('apikey');
+  if(k && k.value){ h['X-API-Key']=k.value; }
+  return h;
+}
+function esc(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+async function api(path, opts){
+  const r=await fetch(path, Object.assign({headers:headers()}, opts||{}));
+  const d=await r.json();
+  if(!r.ok){ throw new Error((d.error && d.error.message) || ('HTTP '+r.status)); }
+  return d;
+}
+async function predict(){
+  const v=document.getElementById('vehicle').value;
+  const result=document.getElementById('result');
+  result.innerHTML='<div class="muted">Running prediction...</div>';
+  try {
+    const d=await api('/api/v1/vehicles/'+encodeURIComponent(v)+'/predictions',{method:'POST',headers:headers()});
+    const factors=d.top_factors.map(f=>`<li>${esc(f.feature)} &mdash; ${esc(f.direction)} than fleet average</li>`).join('');
+    result.innerHTML=`<div class="risk ${d.risk.toLowerCase()}">${d.risk}</div><div class="prob">${(d.fault_probability*100).toFixed(1)}%</div><b>Main drivers</b><ul class="factors">${factors}</ul><small>Latency ${d.latency_ms} ms &bull; ${esc(d.model_version)} &bull; id ${esc(d.prediction_id.slice(0,8))}</small>`;
+    await refresh();
+  } catch(e) {
+    result.innerHTML=`<div class="risk high">ERROR</div><p>${esc(e.message)}</p>`;
+  }
+}
+async function loadMonitoring(){
+  try {
+    const d=await api('/api/v1/monitoring');
+    document.getElementById('health').innerHTML=`<b>Services healthy</b><br>p50 / p95 latency: ${d.latency_ms.p50} / ${d.latency_ms.p95} ms (target ${d.latency_ms.target_p95})<br>Predictions served: ${d.predictions_served}<br>Vehicles in feature store: ${d.feature_store_vehicles}`;
+    const dr=d.drift;
+    if(dr.status==='insufficient_data'){
+      document.getElementById('drift').innerHTML=`Waiting for live telemetry: ${dr.samples} / ${dr.required_samples} samples collected.`;
+    } else {
+      document.getElementById('drift').innerHTML='<table><tr><th>Feature</th><th>PSI</th><th>Status</th></tr>'+Object.keys(dr.psi).map(k=>`<tr><td>${k}</td><td>${dr.psi[k]}</td><td class="status-${dr.status[k]}">${dr.status[k]}</td></tr>`).join('')+'</table>';
+    }
+  } catch(e) { document.getElementById('health').textContent=e.message; }
+}
+async function loadAudit(){
+  try {
+    const rows=(await api('/api/v1/audit?limit=8')).predictions;
+    document.getElementById('audit').innerHTML = rows.length ? rows.map(x=>`<tr><td>${esc(x.vehicle_id)}</td><td><span class="risk ${x.risk.toLowerCase()}">${x.risk}</span></td><td>${(x.fault_probability*100).toFixed(1)}%</td><td>${x.latency_ms} ms</td><td>${esc(x.model_version)}</td></tr>`).join('') : '<tr><td colspan="5">No predictions yet.</td></tr>';
+  } catch(e) {}
+}
+async function sendEvent(){
+  const v=document.getElementById('vehicle').value;
+  const body={vehicle_id:v,brake_temperature:190,brake_pressure:73,pad_wear_pct:80,vibration_rms:3.4,fluid_age_days:420,odometer_km:85000};
+  try {
+    const d=await api('/api/v1/telemetry',{method:'POST',headers:headers({'Content-Type':'application/json'}),body:JSON.stringify(body)});
+    document.getElementById('eventResult').textContent=JSON.stringify(d,null,2);
+  } catch(e) { document.getElementById('eventResult').textContent=e.message; }
+  await refresh();
+}
+async function refresh(){ await loadMonitoring(); await loadAudit(); }
+refresh();
+</script></body></html>
