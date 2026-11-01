@@ -278,7 +278,9 @@ print(out.stdout[-600:])
 Colab's built-in port proxy and its inline image output both need **third-party cookies**, which
 managed (office) browsers often block. This cell avoids both: it starts the API and a small file
 server for the charts, then exposes each through a free **Cloudflare quick tunnel** (no account
-needed). It prints three normal `https://...trycloudflare.com` links that open in any browser tab.
+needed). It prints normal `https://...trycloudflare.com` links that open in any browser tab.
+`http://localhost:8000` links do **not** work from your browser: `localhost` is your own PC, while the
+API runs on the Colab machine - always use the printed tunnel links.
 
 * The links are public while the cell's processes run - fine for a demo, do not share them widely.
 * The processes keep running after the cell finishes - keep this Colab tab open while you use the links.
@@ -330,6 +332,8 @@ if "google.colab" in sys.modules:
     chart_tunnel, chart_url = _start_tunnel(8001, "cloudflared_charts.log")
     print("Dashboard :", api_url or "not ready - see cloudflared_api.log")
     print("Swagger   :", f"{api_url}/docs" if api_url else "-")
+    print("Health    :", f"{api_url}/ready" if api_url else "-")
+    print("Monitoring:", f"{api_url}/api/v1/monitoring" if api_url else "-")
     print("Charts    :", chart_url or "not ready - see cloudflared_charts.log", "(click a .png)")
 else:
     print("Not running in Colab - start the API locally with:  uvicorn app:app  and open http://127.0.0.1:8000")
