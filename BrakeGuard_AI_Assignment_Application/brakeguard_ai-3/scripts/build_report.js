@@ -185,8 +185,8 @@ add(
 
   h2("Task 2 - Research code vs production code"),
   p("Component compared: **model training and inference**. The research version is `notebooks/01_research_prototype.ipynb`, written as typical exploratory cells with the same logic as Assignment I's `model_service.py`. The production version is the `brakeguard` package plus the `scripts/train.py` CLI. The notebook is kept on purpose, and its outputs show two defects the production code removes:"),
-  bullet("Its explanation heuristic (`importance x raw value`) always ranks `odometer_km` first (score 7,681 vs 39 for the next feature) because odometer values are in tens of thousands of km. Production uses `importance x |z-score|`, and the top drivers for BG-10245 become thermal_wear_index, pad_wear_pct and vibration_rms."),
-  bullet("It scores physically impossible input (`pad_wear_pct = 450` gives p = 0.94). Production rejects this with HTTP 422."),
+  bullet("Its explanation heuristic (`importance x raw value`) always ranks `odometer_km` first (score 7,674 vs 40 for the next feature) because odometer values are in tens of thousands of km. Production uses `importance x |z-score|`, and the top drivers for BG-10245 become thermal_wear_index, pad_wear_pct and vibration_rms."),
+  bullet("It scores physically impossible input (`pad_wear_pct = 450` gives p = 0.96). Production rejects this with HTTP 422."),
   ...code(
 `# research notebook - globals, magic numbers, implicit feature order, prints
 model = RandomForestClassifier(n_estimators=160, max_depth=8, min_samples_leaf=4, random_state=42, class_weight="balanced")
@@ -331,7 +331,7 @@ add(
   ...code(excerpt("tests/ml/test_inference.py", "# -- directional expectations", null, 26), "tests/ml/test_inference.py - directional expectation tests"),
 
   h2("Task 8 - Model-quality and data-quality metrics"),
-  p("All values below were measured by `python -m scripts.quality_report` (output in `reports/metrics/quality_report.json`) on a 600-row stratified hold-out set of the 3,000-row synthetic fleet data. The same model metrics are stored in the model bundle and served at `/api/v1/model` and on the dashboard."),
+  p("All values below were measured by `python -m scripts.quality_report` (output in `reports/metrics/quality_report.json`) on a 600-row stratified hold-out set of the 3,000-row synthetic fleet data. The same model metrics are stored in the model bundle and served at `/api/v1/model` and on the dashboard. They were produced with scikit-learn 1.6.1 and match the Colab execution of `notebooks/Group14.ipynb`. Random-forest internals changed in scikit-learn 1.9, where the same code gives slightly different values (e.g. recall 0.816 instead of 0.809), so the version is recorded with every model in `ModelBundle.sklearn_version`."),
   h3("8a. Model quality"),
   table(["Metric", "Why it matters for BrakeGuard", "Hold-out", "Train", "Target / gate"], [
     ["Recall", "Share of real brake faults caught; a missed fault is the costly error", mq.recall.toFixed(3), mqTrain.recall.toFixed(3), ">= 0.75 (registration gate)"],
@@ -407,7 +407,7 @@ docker compose up --build                                 # lint + tests run ins
   table(["Path", "Content"], [
     ["brakeguard/", "Production package (about 2,000 lines across 29 modules)"],
     ["tests/", "96 pytest tests in unit / data_quality / ml / integration"],
-    ["notebooks/Group14.ipynb", "Executed implementation notebook with group details"],
+    ["notebooks/Group14.ipynb", "Implementation notebook with group details, executed end to end in Google Colab"],
     ["notebooks/01_research_prototype.ipynb", "Research-code version used for the Task 2 comparison"],
     ["docs/", "research_vs_production.md, production_testing_and_security.md"],
     ["reports/lint/", "Lint reports: before (Assignment I), before (new package), after"],

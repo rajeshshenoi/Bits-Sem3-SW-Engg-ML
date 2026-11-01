@@ -1,6 +1,6 @@
 ============================= test session starts ==============================
-platform linux -- Python 3.13.18, pytest-9.2.0, pluggy-1.7.0 -- /usr/local/bin/python
-rootdir: /home/user/Bits-Sem3-SW-Engg-ML/BrakeGuard_AI_Assignment_Application/brakeguard_ai-3
+platform linux -- Python 3.13.18, pytest-9.2.0, pluggy-1.7.0 -- .venv/bin/python
+rootdir: brakeguard_ai-3
 configfile: pyproject.toml
 testpaths: tests
 plugins: platformdirs-4.14.2, anyio-4.15.1, cov-7.1.0
@@ -139,4 +139,4 @@ brakeguard/pipeline.py                  44      0   100%
 brakeguard/schemas.py                   14      0   100%
 --------------------------------------------------------
 TOTAL                                 1030     34    97%
-============================= 96 passed in 16.69s ==============================
+============================= 96 passed in 20.19s ==============================

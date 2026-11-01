@@ -1,7 +1,7 @@
 $ pytest -v --cov=brakeguard   (excerpt - full log in reports/tests/pytest_report.txt)
 ============================= test session starts ==============================
-platform linux -- Python 3.13.18, pytest-9.2.0, pluggy-1.7.0 -- /usr/local/bin/python
-rootdir: /home/user/Bits-Sem3-SW-Engg-ML/BrakeGuard_AI_Assignment_Application/brakeguard_ai-3
+platform linux -- Python 3.13.18, pytest-9.2.0, pluggy-1.7.0 -- .venv/bin/python
+rootdir: brakeguard_ai-3
 configfile: pyproject.toml
 tests/data_quality/test_data_quality.py::test_synthetic_data_passes_all_quality_gates PASSED [  1%]
 tests/data_quality/test_data_quality.py::test_missing_column_fails_schema PASSED [  2%]
@@ -55,4 +55,4 @@ brakeguard/pipeline.py                  44      0   100%
 brakeguard/schemas.py                   14      0   100%
 --------------------------------------------------------
 TOTAL                                 1030     34    97%
-============================= 96 passed in 16.69s ==============================
+============================= 96 passed in 20.19s ==============================

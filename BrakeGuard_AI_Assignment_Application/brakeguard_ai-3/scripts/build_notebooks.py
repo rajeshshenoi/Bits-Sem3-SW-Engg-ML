@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import nbformat as nbf
@@ -356,10 +357,17 @@ else:
 
 
 def main() -> None:
-    """Write both notebooks."""
+    """Write the research notebook; Group14.ipynb only with --include-group-notebook.
+
+    notebooks/Group14.ipynb is the submitted, Colab-executed notebook. Regenerating it would wipe
+    those outputs, so it is only rewritten when explicitly requested.
+    """
     NB_DIR.mkdir(exist_ok=True)
     nbf.write(research_notebook(), NB_DIR / "01_research_prototype.ipynb")
-    nbf.write(group_notebook(), NB_DIR / "Group14.ipynb")
+    if "--include-group-notebook" in sys.argv[1:]:
+        nbf.write(group_notebook(), NB_DIR / "Group14.ipynb")
+    else:
+        print("Kept notebooks/Group14.ipynb (Colab-executed); pass --include-group-notebook to regenerate it")
 
 
 if __name__ == "__main__":

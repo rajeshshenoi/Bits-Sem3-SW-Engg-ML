@@ -4,28 +4,28 @@
     "test": {
       "n_samples": 600,
       "threshold": 0.5,
-      "accuracy": 0.7783,
-      "precision": 0.7683,
-      "recall": 0.8155,
-      "f1": 0.7912,
-      "pr_auc": 0.8439,
-      "roc_auc": 0.8469,
-      "brier_score": 0.1597,
-      "expected_calibration_error": 0.0301,
-      "log_loss": 0.4885
+      "accuracy": 0.7767,
+      "precision": 0.7692,
+      "recall": 0.8091,
+      "f1": 0.7886,
+      "pr_auc": 0.8375,
+      "roc_auc": 0.846,
+      "brier_score": 0.1602,
+      "expected_calibration_error": 0.034,
+      "log_loss": 0.4895
     },
     "train": {
       "n_samples": 2400,
       "threshold": 0.5,
-      "accuracy": 0.8708,
-      "precision": 0.8852,
-      "recall": 0.8608,
-      "f1": 0.8728,
-      "pr_auc": 0.9567,
-      "roc_auc": 0.9496,
-      "brier_score": 0.101,
-      "expected_calibration_error": 0.0945,
-      "log_loss": 0.3393
+      "accuracy": 0.8742,
+      "precision": 0.8866,
+      "recall": 0.8665,
+      "f1": 0.8764,
+      "pr_auc": 0.958,
+      "roc_auc": 0.9513,
+      "brier_score": 0.0996,
+      "expected_calibration_error": 0.0968,
+      "log_loss": 0.3357
     }
   },
   "data_quality": {
