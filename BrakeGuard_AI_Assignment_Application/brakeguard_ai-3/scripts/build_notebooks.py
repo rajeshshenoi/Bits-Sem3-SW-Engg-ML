@@ -272,6 +272,65 @@ print(out.stdout[-600:])
         code("""
 (ROOT / "artifacts" / "notebook_model.joblib").unlink(missing_ok=True)
 """),
+        md("""
+## 7. Optional - open the live dashboard, Swagger and charts in your browser (Colab only)
+
+Colab's built-in port proxy and its inline image output both need **third-party cookies**, which
+managed (office) browsers often block. This cell avoids both: it starts the API and a small file
+server for the charts, then exposes each through a free **Cloudflare quick tunnel** (no account
+needed). It prints three normal `https://...trycloudflare.com` links that open in any browser tab.
+
+* The links are public while the cell's processes run - fine for a demo, do not share them widely.
+* Stop everything with the last cell. When the notebook runs outside Colab these cells do nothing.
+"""),
+        code("""
+import re, time, urllib.request
+
+def _start_tunnel(port, log_name):
+    log = open(ROOT / log_name, "w")
+    proc = subprocess.Popen([str(ROOT / "cloudflared"), "tunnel", "--url", f"http://localhost:{port}", "--no-autoupdate"],
+                            stdout=log, stderr=log)
+    for _ in range(45):
+        time.sleep(1)
+        found = re.search(r"https://[a-z0-9-]+\\.trycloudflare\\.com", (ROOT / log_name).read_text())
+        if found:
+            return proc, found.group(0)
+    return proc, None
+
+if "google.colab" in sys.modules:
+    # 1. API + dashboard on port 8000 (loads the registered model, or trains one on first start)
+    api_server = subprocess.Popen([sys.executable, "-m", "uvicorn", "app:app", "--port", "8000"], cwd=ROOT,
+                                  stdout=open(ROOT / "uvicorn.log", "w"), stderr=subprocess.STDOUT)
+    for _ in range(60):
+        try:
+            urllib.request.urlopen("http://localhost:8000/ready", timeout=2)
+            break
+        except Exception:
+            time.sleep(1)
+    # 2. Static file server for the chart PNGs on port 8001
+    chart_server = subprocess.Popen([sys.executable, "-m", "http.server", "8001", "--directory", str(ROOT / "reports" / "metrics")],
+                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    # 3. Cloudflare quick tunnels (downloads the cloudflared binary once)
+    if not (ROOT / "cloudflared").exists():
+        subprocess.run(["wget", "-q", "-O", str(ROOT / "cloudflared"),
+                        "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64"], check=True)
+        (ROOT / "cloudflared").chmod(0o755)
+    api_tunnel, api_url = _start_tunnel(8000, "cloudflared_api.log")
+    chart_tunnel, chart_url = _start_tunnel(8001, "cloudflared_charts.log")
+    print("Dashboard :", api_url or "not ready - see cloudflared_api.log")
+    print("Swagger   :", f"{api_url}/docs" if api_url else "-")
+    print("Charts    :", chart_url or "not ready - see cloudflared_charts.log", "(click a .png)")
+else:
+    print("Not running in Colab - start the API locally with:  uvicorn app:app  and open http://127.0.0.1:8000")
+"""),
+        code("""
+# Stop the API, chart server and tunnels (Colab only)
+for name in ("api_tunnel", "chart_tunnel", "chart_server", "api_server"):
+    proc = globals().get(name)
+    if proc is not None:
+        proc.terminate()
+print("stopped" if "google.colab" in sys.modules else "nothing to stop")
+"""),
     ]
     return nb
 
