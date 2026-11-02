@@ -73,14 +73,27 @@ function excerpt(file, startMarker, endMarker, maxLines = 60) {
   return lines.slice(s, Math.min(e, s + maxLines)).join("\n").replace(/\s+$/, "");
 }
 
+function imageSize(buf) {
+  if (buf.readUInt32BE(0) === 0x89504e47) return { type: "png", w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) };
+  let i = 2; // JPEG: walk the segments until a SOFn marker
+  while (i < buf.length) {
+    const marker = buf.readUInt16BE(i);
+    const len = buf.readUInt16BE(i + 2);
+    if (marker >= 0xffc0 && marker <= 0xffcf && ![0xffc4, 0xffc8, 0xffcc].includes(marker)) {
+      return { type: "jpg", h: buf.readUInt16BE(i + 5), w: buf.readUInt16BE(i + 7) };
+    }
+    i += 2 + len;
+  }
+  throw new Error("unsupported image");
+}
+
 function image(rel, maxWIn = 6.3, maxHIn = 8.3) {
   const buf = fs.readFileSync(path.join(ROOT, rel));
-  // PNG width/height from IHDR
-  const w = buf.readUInt32BE(16), h = buf.readUInt32BE(20);
+  const { type, w, h } = imageSize(buf);
   let wPx = maxWIn * 96, hPx = (wPx * h) / w;
   if (hPx > maxHIn * 96) { hPx = maxHIn * 96; wPx = (hPx * w) / h; }
   return new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 60, after: 60 },
-    children: [new ImageRun({ type: "png", data: buf, transformation: { width: Math.round(wPx), height: Math.round(hPx) } })] });
+    children: [new ImageRun({ type, data: buf, transformation: { width: Math.round(wPx), height: Math.round(hPx) } })] });
 }
 
 const border = { style: BorderStyle.SINGLE, size: 4, color: "B8C2CF" };
@@ -97,7 +110,7 @@ function table(headers, rows, widths) {
   return new Table({
     width: { size: total, type: WidthType.DXA }, columnWidths: widths,
     rows: [new TableRow({ tableHeader: true, children: headers.map((h, i) => cell(h, i, true)) }),
-      ...rows.map((r) => new TableRow({ children: r.map((c, i) => cell(c, i, false)) }))],
+      ...rows.map((r) => new TableRow({ cantSplit: true, children: r.map((c, i) => cell(c, i, false)) }))],
   });
 }
 const gap = () => new Paragraph({ spacing: { after: 80 }, children: [] });
@@ -130,7 +143,8 @@ add(
   pageBreak(),
   new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun("Contents")] }),
   ...[
-    "0. System overview",
+    "1. Assignment I recap - requirements and architecture baseline",
+    "2. System overview - Assignment I architecture and its Assignment II implementation",
     "Objective 1 - Implementation and code sharing [5 marks]",
     "    Task 1 - OOP / functional design of the ML application",
     "    Task 2 - Research code vs production code",
@@ -148,11 +162,71 @@ add(
   pageBreak()
 );
 
-// 0. Overview
+// 1. Assignment I recap
 add(
-  h1("0. System overview"),
+  h1("1. Assignment I recap"),
+  p("Assignment I (Group 14, BrakeGuard.ai v1.0) defined the problem, the requirements (with GR4ML Business, Analytics Design and Data Preparation views) and the architecture, and delivered a first runnable prototype. Assignment II takes that baseline and adds implementation quality and testing. The points that shape this report are summarised below."),
+  h2("1.1 Problem and ML formulation"),
+  table(["Element", "Assignment I definition"], [
+    ["Problem", "Fixed service intervals and reactive inspection miss brake systems that are degrading before a fault becomes visible."],
+    ["Goal", "Estimate each vehicle's probability of a brake-related fault so authorised service personnel can prioritise early inspection."],
+    ["ML task", "Binary classification: y = 1 if a brake-related fault occurs within the next 30 days or 1,000 km (whichever comes first)."],
+    ["Output", "Fault probability in [0, 1] and a risk band: High >= 0.70, Medium 0.40-0.69, Low < 0.40, plus contributing factors."],
+    ["Scope boundary", "Decision support only: no brake-actuator or vehicle control, no automatic approval of safety-critical repairs."],
+    ["Users", "Service manager, service technician, fleet operator (plus data engineer, data scientist, system administrator)."],
+  ], [1900, 7460]),
+  gap(),
+  h2("1.2 Requirements carried into Assignment II"),
+  p("The table lists the Assignment I requirements that Assignment II implements or measures, with the status reached in this submission."),
+  table(["ID", "Assignment I requirement", "Assignment II status / evidence"], [
+    ["AR-01", "Recall >= 90 % (catch future brake faults)", `Not yet met: hold-out recall ${mq.recall.toFixed(3)} on synthetic data. Registration gate set at 0.75 (Task 8); closing the gap needs real fleet data`],
+    ["AR-02", "Precision >= 75 %", `Met: ${mq.precision.toFixed(3)}`],
+    ["AR-03", "Calibrated probability in [0, 1]", `Met: range checked in tests; ECE ${mq.expected_calibration_error.toFixed(3)}, Brier ${mq.brier_score.toFixed(3)}`],
+    ["AR-04 / AR-05", "Report recall, precision, F1, PR-AUC per release; compare with a baseline", "Met: metrics stored in every ModelBundle; tested against a random baseline (a Logistic-Regression baseline is future work)"],
+    ["AR-07", "Temporal train/test split", "Not applicable yet: synthetic data has no timestamps, so a stratified split is used"],
+    ["AR-08 / FR-07", "Explanations for >= 90 % of predictions", "Met: every prediction returns its top-3 contributing factors"],
+    ["FR-02 / FR-11 / DR-06", "Validate data; reject impossible values; >= 95 % completeness", "Met: DataValidator gate (max 5 % missing per column) and API input validation (HTTP 422)"],
+    ["FR-06 / SR-03 / SR-09", "Show timestamp and model version; log every prediction", "Met: AuditLog records id, vehicle, time, probability, risk, model version, latency"],
+    ["SR-01", "P95 prediction latency <= 500 ms", "Met: 18-27 ms per prediction in the test environment"],
+    ["SR-04", "No anonymous access to predictions", "Implemented: optional X-API-Key authentication on /api/v1/*"],
+    ["SR-05", "Fallback when the model is unavailable", "Met: /ready and predictions return 503 with a clear error; automatic retraining if the artefact is missing or corrupt"],
+    ["SR-06", "Data-quality monitoring (completeness, range, drift)", "Met: data-quality report plus PSI / KS drift on live telemetry"],
+    ["SR-07 / SR-08", "Reproducible releases; model rollback", "Partly: versioned ModelBundle with metrics and library version; one-click rollback is future work"],
+    ["SR-10", "No safety-critical control commands", "Met: the system only returns predictions"],
+  ], [1500, 3300, 4560]),
+  gap(),
+  h2("1.3 Architecture decisions"),
+  bullet("**Patterns:** Microservices (prediction, feature, explanation, audit and training services behind an API gateway) and Event-Driven Architecture (vehicle telemetry published once as `BrakeTelemetryReceived` and consumed by several services)."),
+  bullet("**Top three quality requirements:** predictive effectiveness (recall >= 90 %, precision >= 75 %), performance (P95 <= 500 ms) and availability (>= 99.5 % monthly)."),
+  bullet("**Planned stack:** Python, FastAPI, Kafka, a feature store, MLflow, DVC, Docker, Kubernetes, PyTest and Evidently AI."),
+  bullet("**Prototype delivered:** RandomForest model, in-memory feature store and event bus, FastAPI API with dashboard, Docker packaging and 4 tests. Its code is the starting point refactored in this assignment."),
+);
+
+// 2. Overview
+add(
+  pageBreak(),
+  h1("2. System overview"),
   p("BrakeGuard AI predicts the probability that a vehicle's brake system will develop a fault within the next 30 days / 1,000 km, using six telemetry signals: rotor temperature, line pressure, pad wear, caliper vibration, brake-fluid age and odometer. A Random-Forest classifier produces a probability, which is mapped to a LOW / MEDIUM / HIGH risk band (thresholds 0.40 / 0.70) with an explanation of the main drivers. The ML component sits inside non-ML components: a REST API, a feature store, an event bus for telemetry, an audit log and drift monitoring."),
   p("Assignment I delivered a working prototype (`brakeguard_ai-2`) with module-level globals, no data validation, one happy-path test file, no logging, and a dashboard bug (the audit table read `fault_probability` while the log stored `probability`). Assignment II rebuilds it as the production-style package below. The model family and hyper-parameters are kept, so the comparison isolates software-engineering changes."),
+  p("Figure 1 is the system architecture designed in Assignment I. The table after it shows where each component lives in the Assignment II code. Components that would be separate services in production run in one process here, as in the prototype; the module boundaries match the planned service boundaries."),
+  image("docs/assignment1/a1_system_architecture.jpg", 6.5, 4.2),
+  caption("Figure 1 - Assignment I system architecture: ML and non-ML components, online prediction flow, offline training flow and monitoring (from the Group 14 Assignment I report)."),
+  table(["Assignment I component", "Type", "Assignment II implementation", "Status"], [
+    ["API Gateway", "Non-ML", "FastAPI app factory `create_app`; X-API-Key check; request-id middleware", "Implemented"],
+    ["Prediction Orchestrator", "Non-ML", "API routes + `ServiceContainer`; `RiskThresholds` maps probability to risk band", "Implemented"],
+    ["Feature Service / Feature Store", "ML-supporting", "`FeatureStore` (thread-safe, in-memory); `FeatureEngineer` inside the model pipeline", "Implemented (in-memory)"],
+    ["Model Serving Service", "ML", "`BrakeFaultPredictor` loading a registered `ModelBundle`", "Implemented"],
+    ["Explanation Service", "ML-supporting", "`Prediction.top_factors`: importance x |z-score| per feature", "Implemented"],
+    ["Prediction & Audit Store", "Non-ML", "`AuditLog` (bounded, thread-safe); `/api/v1/audit`", "Implemented (in-memory)"],
+    ["Message Broker (Kafka)", "Non-ML infrastructure", "`EventBus` publish/subscribe with failure isolation; feature-store and drift consumers", "In-process stand-in"],
+    ["Data Pipeline", "ML-supporting", "`TelemetryDataSource` sources, `DataValidator` quality gate, `FeatureEngineer`", "Implemented"],
+    ["Model Training", "ML", "`ModelTrainer` + `TrainingPipeline` with data- and model-quality gates", "Implemented"],
+    ["MLflow Model Registry", "ML / MLOps", "`ModelRegistry` (versioned joblib bundle with metrics, data quality and library version)", "File-based stand-in"],
+    ["Monitoring (Evidently AI)", "Non-ML / MLOps", "`/api/v1/monitoring`: latency p50/p95, model quality, PSI/KS drift; structured logging", "Implemented (own code)"],
+    ["Docker / Kubernetes", "Infrastructure", "Multi-stage Dockerfile with lint/test gate, docker-compose, /health and /ready probes", "Docker done; K8s manifests future work"],
+  ], [2100, 1400, 4200, 1660]),
+  gap(),
+  p("The Assignment II package is organised as follows:"),
   table(["Package / module", "Responsibility", "Key classes / functions"], [
     ["`brakeguard/config.py`", "Immutable, environment-overridable settings", "`Settings`, `RiskThresholds`, `ModelHyperParams`"],
     ["`brakeguard/schemas.py`", "Single source of truth for the telemetry contract", "`TELEMETRY_SCHEMA`, `FeatureSpec`"],
@@ -174,7 +248,7 @@ add(
   h1("Objective 1 - Implementation and code sharing"),
   h2("Task 1 - OOP / functional design of the ML application"),
   p("The code is organised around the ML lifecycle, with one class per responsibility. The design follows these principles:"),
-  bullet("**Single responsibility:** ingestion, validation, feature engineering, training, persistence and inference are separate classes. Each can be tested on its own (Section 6) and replaced independently."),
+  bullet("**Single responsibility:** ingestion, validation, feature engineering, training, persistence and inference are separate classes. Each can be tested on its own (Task 6) and replaced independently."),
   bullet("**Dependency inversion:** `TrainingPipeline` depends on the abstract `TelemetryDataSource`, so synthetic data, a CSV export or a database are interchangeable. The integration test trains from a CSV without code changes."),
   bullet("**Composition over globals:** the API builds a `ServiceContainer` (predictor, feature store, event bus, audit log, drift detector) per application instance through the `create_app` factory. Tests create isolated apps with no model or with an API key, without shared mutable state."),
   bullet("**Functional core:** metrics (`evaluate_classifier`, `expected_calibration_error`, `population_stability_index`) are pure functions of their inputs, and settings and value objects are frozen dataclasses."),
@@ -233,7 +307,7 @@ prediction.risk, prediction.fault_probability, prediction.top_factors`, "Product
   gap(),
   ...code(excerpt("brakeguard/models/registry.py", "    def load(self)", null, 25), "brakeguard/models/registry.py - error handling with meaningful levels"),
   image("reports/screenshots/10_logging_levels.png"),
-  caption("Figure 1 - Real log output: INFO lifecycle, WARNING for HIGH risk / drift / rejected input, ERROR for a missing data file (CLI exits with code 1) and a corrupt model artefact (automatic retraining fallback)."),
+  caption("Figure 2 - Real log output: INFO lifecycle, WARNING for HIGH risk / drift / rejected input, ERROR for a missing data file (CLI exits with code 1) and a corrupt model artefact (automatic retraining fallback)."),
 
   h2("Task 4 - Code formatting and linting"),
   p("Tools: **black** (formatting, line length 110), **isort** (import order, black profile), **flake8** (PEP 8 / pyflakes) and **pylint** (static analysis). Configuration is in `pyproject.toml` and `.flake8`. The same commands run as a build gate in the Dockerfile. Two \"before\" baselines were captured: the Assignment I code base, and the new package before black and isort were run and findings fixed."),
@@ -246,13 +320,13 @@ prediction.risk, prediction.fault_probability, prediction.top_factors`, "Product
   gap(),
   p("Fixes applied to the package after the baseline: automatic reformatting (black) and import sorting (isort); renaming `VehicleId` to `VEHICLE_ID_PATH` (constant naming); removing variable shadowing (`audit` -> `entry`); marking intentionally unused arguments; and documenting why sklearn's `fit()`-time attributes and the dataclass field counts are acceptable. Suppressions are local and commented, never global. Raw reports are in `reports/lint/`."),
   image("reports/screenshots/report_crops/05a_lint_before_a1_tools.png", 6.3, 7.6),
-  caption("Figure 2a - BEFORE: black, isort and flake8 on the Assignment I code base."),
+  caption("Figure 3a - BEFORE: black, isort and flake8 on the Assignment I code base."),
   image("reports/screenshots/report_crops/05b_lint_before_a1_pylint.png", 6.3, 7.6),
-  caption("Figure 2b - BEFORE: pylint on the Assignment I code base (7.25/10)."),
+  caption("Figure 3b - BEFORE: pylint on the Assignment I code base (7.25/10)."),
   image("reports/screenshots/06_lint_before_assignment2_package.png", 6.3, 7.6),
-  caption("Figure 3 - BEFORE: the new package prior to black/isort and lint fixes (9.83/10, 12 flake8 issues)."),
+  caption("Figure 4 - BEFORE: the new package prior to black/isort and lint fixes (9.83/10, 12 flake8 issues)."),
   image("reports/screenshots/07_lint_after_assignment2_package.png"),
-  caption("Figure 4 - AFTER: black and isort clean, flake8 0 issues, pylint 10.00/10."),
+  caption("Figure 5 - AFTER: black and isort clean, flake8 0 issues, pylint 10.00/10."),
 
   h2("Task 5 - REST API (FastAPI)"),
   p("The API is created by `brakeguard.api.create_app()` and served by `uvicorn app:app`. It follows these design practices:"),
@@ -261,7 +335,7 @@ prediction.risk, prediction.fault_probability, prediction.top_factors`, "Product
   bullet("**Meaningful status codes:** 200 OK, 202 Accepted (telemetry is processed asynchronously in production), 401 Unauthorized, 404 Not Found, 422 Unprocessable Content, 503 Service Unavailable (no model). All are documented per endpoint."),
   bullet("**Uniform error envelope** `{\"error\": {\"code\", \"message\", \"request_id\", \"details\"}}` for every non-2xx response."),
   bullet("**Traceability:** every response carries `X-Request-ID` and `X-Process-Time-ms`, and every prediction gets a `prediction_id` stored in the audit log with the model version."),
-  bullet("**Security:** optional `X-API-Key` authentication on `/api/v1/*` (Section 9)."),
+  bullet("**Security:** optional `X-API-Key` authentication on `/api/v1/*` (Task 9)."),
   table(["Method", "Endpoint", "Purpose", "Codes"], [
     ["GET", "/health, /ready", "Liveness / readiness probes", "200 / 200, 503"],
     ["GET", "/api/v1/model", "Model version, training time, metrics, thresholds", "200, 401, 503"],
@@ -277,13 +351,13 @@ prediction.risk, prediction.fault_probability, prediction.top_factors`, "Product
   gap(),
   ...code(excerpt("brakeguard/api/routes.py", '@api_router.post("/predictions", response_model', "@api_router.post(", 12), "brakeguard/api/routes.py - prediction endpoint"),
   image("reports/screenshots/report_crops/03_swagger_endpoints.png", 6.3, 7.9),
-  caption("Figure 5 - Swagger UI (/docs): endpoints grouped by tag; lock icons mark API-key-protected routes."),
+  caption("Figure 6 - Swagger UI (/docs): endpoints grouped by tag; lock icons mark API-key-protected routes."),
   image("reports/screenshots/report_crops/04_swagger_predict_schema.png", 6.3, 7.9),
-  caption("Figure 6 - Request schema with example, and documented 200/401/422/503 responses for POST /api/v1/predictions."),
+  caption("Figure 7 - Request schema with example, and documented 200/401/422/503 responses for POST /api/v1/predictions."),
   image("reports/screenshots/09_api_curl_demo.png"),
-  caption("Figure 7 - curl session: 200 prediction with explanation, 422 for pad wear of 450 %, 404 for an unknown vehicle, 202 for a telemetry event."),
+  caption("Figure 8 - curl session: 200 prediction with explanation, 422 for pad wear of 450 %, 404 for an unknown vehicle, 202 for a telemetry event."),
   image("reports/screenshots/01_dashboard_full.png", 6.3, 8.0),
-  caption("Figure 8 - Dashboard served by the API: prediction with drivers, hold-out model-quality metrics, latency, event-driven telemetry, live drift (a simulated heat-wave fleet drifts on brake temperature and pad wear only) and the audit log.")
+  caption("Figure 9 - Dashboard served by the API: prediction with drivers, hold-out model-quality metrics, latency, event-driven telemetry, live drift (a simulated heat-wave fleet drifts on brake temperature and pad wear only) and the audit log.")
 );
 
 // Objective 2
@@ -301,13 +375,13 @@ add(
   ], [1700, 1700, 500, 5460]),
   gap(),
   image("reports/screenshots/08_pytest_results.png", 6.3, 8.0),
-  caption("Figure 9 - pytest run (excerpt; full verbose log in reports/tests/pytest_report.txt) with the coverage table."),
+  caption("Figure 10 - pytest run (excerpt; full verbose log in reports/tests/pytest_report.txt) with the coverage table."),
 
   h2("Task 7 - Tests specific to ML components"),
   h3("7a. Testing model training (tests/ml/test_training.py)"),
   table(["Test", "Rationale"], [
     ["`test_model_can_overfit_a_small_batch`", "A high-capacity forest must memorise 32 samples (100 % training accuracy). Failure means misaligned labels or dropped features."],
-    ["`test_training_loss_decreases_as_trees_are_added`", `Random forests have no epochs, so the analogue is training log-loss as trees are added (warm_start). It falls from ${quality.training_loss_curve["1"]} (1 tree) to ${quality.training_loss_curve["160"]} (160 trees) and must never rise by more than 0.01 (Figure 10).`],
+    ["`test_training_loss_decreases_as_trees_are_added`", `Random forests have no epochs, so the analogue is training log-loss as trees are added (warm_start). It falls from ${quality.training_loss_curve["1"]} (1 tree) to ${quality.training_loss_curve["160"]} (160 trees) and must never rise by more than 0.01 (Figure 11).`],
     ["`test_model_beats_trivial_baseline`", "PR-AUC must exceed the positive rate (a random classifier's PR-AUC) by 0.2; ROC-AUC > 0.75."],
     ["`test_model_meets_quality_targets`", "Recall >= 0.75, ECE <= 0.10, Brier <= 0.20."],
     ["`test_training_is_reproducible`", "Same data and seed give identical metrics."],
@@ -318,7 +392,7 @@ add(
   gap(),
   ...code(excerpt("tests/ml/test_training.py", "def test_model_can_overfit_a_small_batch", "def test_model_beats_trivial_baseline"), "tests/ml/test_training.py"),
   image("reports/metrics/loss_curve.png", 4.6),
-  caption("Figure 10 - Training log-loss as trees are added (basis of the 'loss decreases' test)."),
+  caption("Figure 11 - Training log-loss as trees are added (basis of the 'loss decreases' test)."),
   h3("7b. Testing model inference (tests/ml/test_inference.py)"),
   p("These tests follow the CheckList approach: shape and range checks, minimum-functionality cases, invariance tests (changes that must not affect the output) and directional-expectation tests (changes that must move the output in a known direction)."),
   table(["Category", "Tests"], [
@@ -343,11 +417,11 @@ add(
     ["ECE (10 bins)", "Does a 70 % shown to a fleet manager mean 70 %?", mq.expected_calibration_error.toFixed(3), mqTrain.expected_calibration_error.toFixed(3), "<= 0.10 (test)"],
   ], [1300, 3500, 1000, 900, 2660]),
   gap(),
-  p(`Recall is ${mq.recall.toFixed(3)} at threshold 0.5. Across other synthetic seeds hold-out recall varied between about 0.70 and 0.82, which is why recall is a gate rather than a single trusted number, and why it is re-checked online (Section 9). Calibration is good (ECE ${mq.expected_calibration_error.toFixed(3)}), so the probability shown on the dashboard can be read at face value.`),
+  p(`Recall is ${mq.recall.toFixed(3)} at threshold 0.5. Across other synthetic seeds hold-out recall varied between about 0.70 and 0.82, which is why recall is a gate rather than a single trusted number, and why it is re-checked online (Task 9). Calibration is good (ECE ${mq.expected_calibration_error.toFixed(3)}), so the probability shown on the dashboard can be read at face value.`),
   image("reports/metrics/calibration.png", 4.6),
-  caption("Figure 11 - Reliability diagram: predicted probabilities track observed fault rates."),
+  caption("Figure 12 - Reliability diagram: predicted probabilities track observed fault rates."),
   image("reports/metrics/precision_recall.png", 4.6),
-  caption("Figure 12 - Precision-recall curve with the operating point at threshold 0.5."),
+  caption("Figure 13 - Precision-recall curve with the operating point at threshold 0.5."),
   h3("8b. Data quality"),
   p("`DataValidator` measures data-quality metrics for every batch, and `DriftDetector` compares live telemetry with the training reference. They were run on a clean batch, a deliberately corrupted batch (sensor dropouts, a fraction-vs-percent unit bug and duplicated rows), and a stable and a shifted fleet:"),
   table(["Metric", "Definition", "Clean batch", "Corrupted batch", "Gate"], [
@@ -366,7 +440,7 @@ add(
   gap(),
   p("While building the live drift monitor, PSI over 10 bins on a 30-40-sample window flagged every feature as drifting, because the estimate is dominated by noise. The minimum window was therefore made a setting (`BRAKEGUARD_DRIFT_MIN_SAMPLES`, default 200), and an integration test checks that an in-distribution fleet of 250 vehicles raises no drift alert."),
   image("reports/metrics/drift_psi.png", 5.4),
-  caption("Figure 13 - PSI per feature: the shifted (heat-wave) fleet drifts on temperature and pad wear only."),
+  caption("Figure 14 - PSI per feature: the shifted (heat-wave) fleet drifts on temperature and pad wear only."),
 
   h2("Task 9 - Testing in production and security"),
   h3("Testing / experimentation in production: shadow -> canary -> A/B"),
